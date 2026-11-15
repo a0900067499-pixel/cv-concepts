@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>池化｜像素之後</title>
+  <meta name="description" content="把特徵圖切成小區塊，每塊只留一個代表值，讓資料變小、對位移更不敏感。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-page="concept" data-root=".." data-slug="pooling">
+  <header id="site-header"></header>
+
+  <main class="concept-layout">
+    <article>
+      <header class="concept-header">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1>池化</h1>
+        <div class="en">Pooling</div>
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section id="tldr">
+        <h2>一句話定義</h2>
+        <p class="tldr">把一張圖切成很多小方塊，每塊只留下一個代表數字，圖就縮小了，但重要的訊號還在。</p>
+      </section>
+
+      <section id="intuition">
+        <h2>直覺理解</h2>
+        <div class="analogy">班上要選代表去參加比賽，每一排選分數最高的一位。名單變短了，但每排最強的人都還在；就算某位同學換到同一排的另一個座位，代表還是他。</div>
+        <p>卷積之後的特徵圖，每一格代表「這裡有沒有某個特徵」。池化在問的是「這一小區附近有沒有」，而不是「剛好在哪一格」。這讓網路對物體稍微移動幾個像素比較不敏感，也讓後面的層計算量變小。</p>
+      </section>
+
+      <section id="how">
+        <h2>怎麼運作</h2>
+        <p>最常見的是 2 × 2、步幅（<span class="term">stride</span>）2 的池化：把特徵圖切成不重疊的 2 × 2 小塊，每塊輸出一個值，所以長寬各變成一半。</p>
+        <ul>
+          <li><strong>最大池化</strong>（<span class="term">max pooling</span>）：取每塊最大值，保留最強的反應。卷積網路中間層最常用。</li>
+          <li><strong>平均池化</strong>（<span class="term">average pooling</span>）：取每塊平均，比較平滑。常用在網路最後一層，把整張圖平均成一個值（全域平均池化）。</li>
+        </ul>
+        <div class="formula">輸出邊長 = (輸入邊長 − 池化大小) ÷ 步幅 + 1　　例：(4 − 2) ÷ 2 + 1 = 2</div>
+<pre><code><span class="c"># 2×2 最大池化與平均池化</span>
+import numpy as np
+
+x = np.array([[1, 3, 2, 1],
+              [4, 6, 5, 0],
+              [7, 2, 9, 8],
+              [1, 0, 3, 4]])
+
+<span class="c"># 把 4×4 重新排成 (2 個區塊列, 2, 2 個區塊行, 2)</span>
+blocks = x.reshape(2, 2, 2, 2)
+
+print(blocks.max(axis=(1, 3)))
+<span class="c"># [[6 5]</span>
+<span class="c">#  [7 9]]</span>
+
+print(blocks.mean(axis=(1, 3)))
+<span class="c"># [[3.5 2. ]</span>
+<span class="c">#  [2.5 6. ]]</span>
+</code></pre>
+      </section>
+
+      <section id="example">
+        <h2>動手看看</h2>
+        <p>同一張 4 × 4 特徵圖，切成四個 2 × 2 區塊。左上那塊是 1、3、4、6，最大值是 6，平均是 3.5。每個區塊的最大值已經標出來，你可以自己驗證另外三塊。</p>
+        <div class="matrix-row">
+          <table class="matrix">
+            <tr><td>1</td><td>3</td><td>2</td><td>1</td></tr>
+            <tr><td>4</td><td class="hl">6</td><td class="hl">5</td><td>0</td></tr>
+            <tr><td class="hl">7</td><td>2</td><td class="hl">9</td><td>8</td></tr>
+            <tr><td>1</td><td>0</td><td>3</td><td>4</td></tr>
+          </table>
+          <span class="op">→</span>
+          <div>
+            <table class="matrix"><tr><td class="hl">6</td><td class="hl">5</td></tr><tr><td class="hl">7</td><td class="hl">9</td></tr></table>
+            <div class="figure-caption">最大池化</div>
+          </div>
+          <div>
+            <table class="matrix"><tr><td>3.5</td><td>2</td></tr><tr><td>2.5</td><td>6</td></tr></table>
+            <div class="figure-caption">平均池化</div>
+          </div>
+        </div>
+        <h3>對位移不敏感是什麼意思</h3>
+        <p>把左上區塊裡的 6 移到同一塊的右上角（和 3 交換），最大池化的輸出還是 6，完全沒變。只要移動沒有跨出 2 × 2 的範圍，結果都一樣。</p>
+      </section>
+
+      <section id="pitfalls">
+        <h2>常見誤解</h2>
+        <ul class="pitfalls">
+          <li><span class="wrong">池化層也有要學習的參數。</span><span class="right">池化只是固定的取最大值或平均，沒有任何權重。它會改變資料大小，但不會增加模型參數量。</span></li>
+          <li><span class="wrong">池化會讓網路完全不在乎物體位置。</span><span class="right">池化只對「區塊內」的小位移不敏感。物體從左上移到右下，輸出還是會不一樣。真正的平移不變性是許多層加起來、再加上資料增強才慢慢得到的。</span></li>
+          <li><span class="wrong">現代網路一定有池化層。</span><span class="right">很多新架構改用步幅 2 的卷積來縮小特徵圖，因為這樣縮小的方式也能被學習。池化仍然常見，但不是必要的。</span></li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>相關概念</h2>
+        <div class="related-list" id="related-list"></div>
+      </section>
+
+      <nav id="pager"></nav>
+    </article>
+
+    <nav class="toc" id="toc" aria-label="本頁目錄"></nav>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

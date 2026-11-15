@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>感受野｜像素之後</title>
+  <meta name="description" content="某一層的一個輸出，回推到原始影像上「看得到」的範圍有多大。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-page="concept" data-root=".." data-slug="receptive-field">
+  <header id="site-header"></header>
+
+  <main class="concept-layout">
+    <article>
+      <header class="concept-header">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1>感受野</h1>
+        <div class="en">Receptive Field</div>
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section id="tldr">
+        <h2>一句話定義</h2>
+        <p class="tldr">網路某一層的一個數字，是根據原始影像上多大的一塊區域算出來的，那塊區域就是它的感受野。</p>
+      </section>
+
+      <section id="intuition">
+        <h2>直覺理解</h2>
+        <div class="analogy">公司裡的基層員工只看得到自己的辦公桌，組長彙整三位員工的報告，經理再彙整三位組長的報告。越往上，每個人「間接看到」的範圍越大，雖然他們每次都只聽三個人報告。</div>
+        <p>卷積網路也是這樣。第一層的 3 × 3 卷積只看到 3 × 3 個像素；第二層再做 3 × 3 卷積時，它看的是第一層的結果，回推到原圖就變成 5 × 5。所以前面的層只能認出邊緣、斑點這種小東西，後面的層才有足夠大的視野認出眼睛、輪胎、整隻貓。</p>
+      </section>
+
+      <section id="how">
+        <h2>怎麼運作</h2>
+        <p>從第一層往後一層一層推。每層需要兩個數字：感受野大小 <code>r</code>，以及這一層相鄰兩格在原圖上相距幾個像素，叫做跳距 <code>j</code>。一開始（原圖本身）<code>r = 1</code>、<code>j = 1</code>。</p>
+        <div class="formula">r<sub>新</sub> = r<sub>舊</sub> + (核大小 − 1) × j<sub>舊</sub>　　　j<sub>新</sub> = j<sub>舊</sub> × 步幅</div>
+        <p>關鍵在 <code>j</code>：步幅 2 的池化或卷積會讓 <code>j</code> 翻倍，之後每一層增加的感受野也跟著翻倍。這就是為什麼網路中間夾幾個池化層，感受野會長得很快。</p>
+<pre><code><span class="c"># 逐層計算感受野</span>
+def receptive_field(layers):
+    r, j = 1, 1                          <span class="c"># 從原圖開始</span>
+    for name, k, s in layers:            <span class="c"># (名稱, 核大小, 步幅)</span>
+        r = r + (k - 1) * j
+        j = j * s
+        print(f"{name:6s}  r={r:3d}  j={j}")
+
+receptive_field([
+    ("conv3", 3, 1),
+    ("pool2", 2, 2),
+    ("conv3", 3, 1),
+    ("pool2", 2, 2),
+    ("conv3", 3, 1),
+])
+<span class="c"># conv3   r=  3  j=1</span>
+<span class="c"># pool2   r=  4  j=2</span>
+<span class="c"># conv3   r=  8  j=2</span>
+<span class="c"># pool2   r= 10  j=4</span>
+<span class="c"># conv3   r= 18  j=4</span>
+</code></pre>
+      </section>
+
+      <section id="example">
+        <h2>動手看看</h2>
+        <h3>疊兩層 3 × 3 卷積</h3>
+        <p>下面是 7 × 7 的原圖。第二層的正中央那一格，依賴第一層的 3 × 3 格，而第一層每格又依賴原圖的 3 × 3 格，合起來就是原圖上高亮的 5 × 5 區域。</p>
+        <div class="matrix-row">
+          <table class="matrix" aria-label="7×7 原圖中 5×5 的感受野">
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td></td></tr>
+            <tr><td></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td></td></tr>
+            <tr><td></td><td class="hl"></td><td class="hl"></td><td class="hl">★</td><td class="hl"></td><td class="hl"></td><td></td></tr>
+            <tr><td></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td></td></tr>
+            <tr><td></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td class="hl"></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </table>
+        </div>
+        <p class="figure-caption">★ 為第二層輸出對應的中心位置，高亮範圍為它的感受野（5 × 5）。</p>
+        <h3>為什麼大家愛用小核疊很多層</h3>
+        <p>兩層 3 × 3 的感受野是 5 × 5，跟一層 5 × 5 一樣大；三層 3 × 3 等於 7 × 7。但參數比較少：三層 3 × 3 是 3 × 9 = 27 個權重，一層 7 × 7 要 49 個，而且中間還能多夾幾次非線性運算。這是 VGG 網路的核心想法。</p>
+      </section>
+
+      <section id="pitfalls">
+        <h2>常見誤解</h2>
+        <ul class="pitfalls">
+          <li><span class="wrong">感受野裡的每個像素影響力都一樣大。</span><span class="right">靠近中心的像素被重複用到的次數多很多，影響力遠大於邊緣。實際上「有效感受野」比理論值小，形狀接近中間亮、外圍淡的高斯分布。</span></li>
+          <li><span class="wrong">感受野只跟核的大小有關。</span><span class="right">步幅影響更大。同樣疊三層 3 × 3，中間有沒有夾池化，感受野可以差到兩倍以上，因為步幅會讓後面每層的增量翻倍。</span></li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>相關概念</h2>
+        <div class="related-list" id="related-list"></div>
+      </section>
+
+      <nav id="pager"></nav>
+    </article>
+
+    <nav class="toc" id="toc" aria-label="本頁目錄"></nav>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>卷積｜像素之後</title>
+  <meta name="description" content="用一個小視窗在影像上滑動，逐格做加權總和，抽出邊緣、紋理等局部特徵。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-page="concept" data-root=".." data-slug="convolution">
+  <header id="site-header"></header>
+
+  <main class="concept-layout">
+    <article>
+      <header class="concept-header">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1>卷積</h1>
+        <div class="en">Convolution</div>
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section id="tldr">
+        <h2>一句話定義</h2>
+        <p class="tldr">拿一個小小的數字視窗，在影像上一格一格滑過去，每到一個位置就把底下的像素乘上視窗裡的數字再加總，得到一張新的圖。</p>
+      </section>
+
+      <section id="intuition">
+        <h2>直覺理解</h2>
+        <div class="analogy">像拿一個特定形狀的印章在紙上到處比對：哪裡的圖案跟印章越像，那裡就印得越深。印章換成「左暗右亮」的形狀，就會在每個由暗轉亮的地方留下深色印子。</div>
+        <p>那個小視窗叫做卷積核（<span class="term">kernel</span>，也叫 filter）。核裡的數字決定它在找什麼：找邊緣、找斑點、還是把影像弄模糊。卷積神經網路厲害的地方在於，這些數字不是人設定的，而是從資料裡學出來的。</p>
+      </section>
+
+      <section id="how">
+        <h2>怎麼運作</h2>
+        <p>以 3 × 3 的核為例，每個輸出位置 (i, j) 的值，是輸入影像以 (i, j) 為左上角的 3 × 3 區塊，和核逐格相乘後的總和：</p>
+        <div class="formula">out[i, j] = Σ<sub>m=0..2</sub> Σ<sub>n=0..2</sub> img[i+m, j+n] × k[m, n]</div>
+        <p>核每次往右移一格，到底後換下一列。5 × 5 的輸入用 3 × 3 的核、不補邊，輸出會變成 3 × 3，因為核只能放在 3 × 3 個位置上。一般公式是：輸出邊長 = 輸入邊長 − 核邊長 + 1。</p>
+<pre><code><span class="c"># 手寫一個最簡單的 2D 卷積（不補邊、步幅 1）</span>
+import numpy as np
+
+img = np.array([[10, 10, 10, 200, 200]] * 5)   <span class="c"># 左暗右亮的 5×5 圖</span>
+k = np.array([[-1, 0, 1],
+              [-1, 0, 1],
+              [-1, 0, 1]])                       <span class="c"># 垂直邊緣核</span>
+
+H, W = img.shape
+kh, kw = k.shape
+out = np.zeros((H - kh + 1, W - kw + 1), dtype=int)
+
+for i in range(out.shape[0]):
+    for j in range(out.shape[1]):
+        patch = img[i:i + kh, j:j + kw]          <span class="c"># 取出 3×3 區塊</span>
+        out[i, j] = (patch * k).sum()            <span class="c"># 逐格相乘再加總</span>
+
+print(out)
+<span class="c"># [[  0 570 570]</span>
+<span class="c">#  [  0 570 570]</span>
+<span class="c">#  [  0 570 570]]</span>
+</code></pre>
+      </section>
+
+      <section id="example">
+        <h2>動手看看</h2>
+        <h3>手算一格</h3>
+        <p>用上面程式碼的例子。核放在最左上角時，底下三行都是 10，左右兩行一正一負互相抵消，結果是 0，代表「這裡沒有邊緣」。往右移一格後，右邊那行碰到了 200：</p>
+        <div class="matrix-row">
+          <table class="matrix">
+            <tr><td>10</td><td>10</td><td class="hl">200</td></tr>
+            <tr><td>10</td><td>10</td><td class="hl">200</td></tr>
+            <tr><td>10</td><td>10</td><td class="hl">200</td></tr>
+          </table>
+          <span class="op">∗</span>
+          <table class="matrix">
+            <tr><td>−1</td><td>0</td><td>1</td></tr>
+            <tr><td>−1</td><td>0</td><td>1</td></tr>
+            <tr><td>−1</td><td>0</td><td>1</td></tr>
+          </table>
+          <span class="op">=</span>
+          <table class="matrix"><tr><td class="hl">570</td></tr></table>
+        </div>
+        <p class="figure-caption">(−10 + 200) × 3 列 = 570。數值越大，代表這裡由暗轉亮越明顯。</p>
+
+        <h3>換不同的核試試</h3>
+        <p>下面左邊是一張 16 × 16 的小圖，點按鈕換核，右邊會即時算出卷積結果。注意輸出比輸入小了一圈。</p>
+        <div class="demo" id="conv-demo">
+          <div class="demo-controls" id="conv-buttons"></div>
+          <div class="demo-stage">
+            <div><canvas id="conv-input" width="192" height="192"></canvas><div class="demo-label">輸入 16 × 16</div></div>
+            <div><table class="matrix" id="conv-kernel"></table><div class="demo-label">卷積核 3 × 3</div></div>
+            <div><canvas id="conv-output" width="168" height="168"></canvas><div class="demo-label">輸出 14 × 14</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pitfalls">
+        <h2>常見誤解</h2>
+        <ul class="pitfalls">
+          <li><span class="wrong">深度學習裡的卷積，就是數學課教的卷積。</span><span class="right">數學上的卷積要先把核上下左右翻轉，深度學習框架其實都沒翻，嚴格說是「互相關」（<span class="term">cross-correlation</span>）。因為核是學出來的，翻不翻結果都一樣，所以大家沿用了卷積這個名字。</span></li>
+          <li><span class="wrong">一個卷積層只有一個核。</span><span class="right">一層通常有幾十到幾百個核，每個核產生一張輸出圖（特徵圖）。而且輸入是彩色時，每個核的形狀其實是 3 × 3 × 3，會同時看 RGB 三個通道。</span></li>
+          <li><span class="wrong">卷積之後影像一定會變小。</span><span class="right">只要在周圍補一圈 0（<span class="term">padding</span>），3 × 3 的核就能讓輸出和輸入一樣大。大多數網路都會這樣做。</span></li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>相關概念</h2>
+        <div class="related-list" id="related-list"></div>
+      </section>
+
+      <nav id="pager"></nav>
+    </article>
+
+    <nav class="toc" id="toc" aria-label="本頁目錄"></nav>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/js/site.js"></script>
+  <script src="../assets/js/demos/convolution.js"></script>
+</body>
+</html>

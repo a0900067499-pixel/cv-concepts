@@ -1,0 +1,69 @@
+{
+  "site": {
+    "title": "像素之後",
+    "subtitle": "電腦視覺基礎概念，一頁一個",
+    "repo": "https://github.com/112378074/cv-concepts"
+  },
+  "categories": [
+    { "id": "basics", "name": "基礎", "color": "#2f6f8f", "description": "影像在電腦裡長什麼樣子" },
+    { "id": "operations", "name": "運算", "color": "#b5562b", "description": "卷積網路裡一層層發生的事" },
+    { "id": "training", "name": "訓練", "color": "#5b7a2e", "description": "讓模型學得更好的技巧" }
+  ],
+  "concepts": [
+    {
+      "slug": "pixel",
+      "title": "影像與像素",
+      "en": "Image & Pixel",
+      "category": "basics",
+      "order": 1,
+      "level": 1,
+      "summary": "一張影像就是一個數字矩陣，每個數字代表一個點的亮度或顏色。",
+      "related": ["convolution", "data-augmentation"],
+      "updated": "2026-11-15"
+    },
+    {
+      "slug": "convolution",
+      "title": "卷積",
+      "en": "Convolution",
+      "category": "operations",
+      "order": 2,
+      "level": 2,
+      "summary": "用一個小視窗在影像上滑動，逐格做加權總和，抽出邊緣、紋理等局部特徵。",
+      "related": ["pixel", "pooling", "receptive-field"],
+      "updated": "2026-11-15"
+    },
+    {
+      "slug": "pooling",
+      "title": "池化",
+      "en": "Pooling",
+      "category": "operations",
+      "order": 3,
+      "level": 1,
+      "summary": "把特徵圖切成小區塊，每塊只留一個代表值，讓資料變小、對位移更不敏感。",
+      "related": ["convolution", "receptive-field"],
+      "updated": "2026-11-15"
+    },
+    {
+      "slug": "receptive-field",
+      "title": "感受野",
+      "en": "Receptive Field",
+      "category": "operations",
+      "order": 4,
+      "level": 2,
+      "summary": "某一層的一個輸出，回推到原始影像上「看得到」的範圍有多大。",
+      "related": ["convolution", "pooling"],
+      "updated": "2026-11-15"
+    },
+    {
+      "slug": "data-augmentation",
+      "title": "資料增強",
+      "en": "Data Augmentation",
+      "category": "training",
+      "order": 5,
+      "level": 1,
+      "summary": "對訓練影像做翻轉、裁切、調色等變化，用同一批資料教出更耐變化的模型。",
+      "related": ["pixel", "convolution"],
+      "updated": "2026-11-15"
+    }
+  ]
+}

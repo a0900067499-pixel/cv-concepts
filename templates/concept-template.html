@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!--
+  概念頁範本。新增概念時：
+  1. 複製本檔到 concepts/<slug>.html
+  2. 把所有 {{ }} 換成實際內容，並刪除所有 TODO 註解
+  3. 五個必要 section（tldr / intuition / how / example / pitfalls）的 id 與標題文字不可更改
+  4. 「相關概念」「上下頁」「目錄」「標籤」由 site.js 依 data/concepts.json 自動產生，不要手寫
+-->
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{中文標題}}｜像素之後</title>
+  <meta name="description" content="{{與 concepts.json 的 summary 相同}}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-page="concept" data-root=".." data-slug="{{slug}}">
+  <header id="site-header"></header>
+
+  <main class="concept-layout">
+    <article>
+      <header class="concept-header">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1>{{中文標題}}</h1>
+        <div class="en">{{English Title}}</div>
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section id="tldr">
+        <h2>一句話定義</h2>
+        <p class="tldr">{{一到兩句話，不用術語也能看懂}}</p>
+      </section>
+
+      <section id="intuition">
+        <h2>直覺理解</h2>
+        <div class="analogy">{{生活中的比喻}}</div>
+        <p>{{把比喻接回到電腦視覺}}</p>
+      </section>
+
+      <section id="how">
+        <h2>怎麼運作</h2>
+        <p>{{原理說明，必要時用 .formula 放公式}}</p>
+        <div class="formula">{{公式（選用）}}</div>
+        <pre><code><span class="c"># {{用 NumPy 寫的最小範例，10–20 行}}</span>
+</code></pre>
+      </section>
+
+      <section id="example">
+        <h2>動手看看</h2>
+        <!-- TODO：二擇一 —— 靜態數字例子（.matrix 表格）或互動示範（.demo + assets/js/demos/<slug>.js） -->
+        <p>{{例子說明}}</p>
+      </section>
+
+      <section id="pitfalls">
+        <h2>常見誤解</h2>
+        <ul class="pitfalls">
+          <li><span class="wrong">{{錯誤說法}}</span><span class="right">{{正確說法與理由}}</span></li>
+          <li><span class="wrong">{{錯誤說法}}</span><span class="right">{{正確說法與理由}}</span></li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>相關概念</h2>
+        <div class="related-list" id="related-list"></div>
+      </section>
+
+      <nav id="pager"></nav>
+    </article>
+
+    <nav class="toc" id="toc" aria-label="本頁目錄"></nav>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/js/site.js"></script>
+  <!-- 有互動示範才加：<script src="../assets/js/demos/{{slug}}.js"></script> -->
+</body>
+</html>

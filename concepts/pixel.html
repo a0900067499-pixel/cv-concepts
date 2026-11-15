@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>影像與像素｜像素之後</title>
+  <meta name="description" content="一張影像就是一個數字矩陣，每個數字代表一個點的亮度或顏色。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-page="concept" data-root=".." data-slug="pixel">
+  <header id="site-header"></header>
+
+  <main class="concept-layout">
+    <article>
+      <header class="concept-header">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1>影像與像素</h1>
+        <div class="en">Image &amp; Pixel</div>
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section id="tldr">
+        <h2>一句話定義</h2>
+        <p class="tldr">對電腦來說，一張影像就是一個排成格子的數字表，每一格叫做一個像素，數字代表那一點有多亮或是什麼顏色。</p>
+      </section>
+
+      <section id="intuition">
+        <h2>直覺理解</h2>
+        <div class="analogy">想像體育館裡的排字表演：每個人舉一張色板，從遠處看是一幅圖，走近看只是一格一格的色塊。每個人就是一個像素，色板的顏色就是那格的數值。</div>
+        <p>電腦沒有「遠處看」這件事，它永遠只拿得到那張數字表。電腦視覺要做的所有事情，不管是找邊緣還是認出貓，都是在這張數字表上做計算。</p>
+      </section>
+
+      <section id="how">
+        <h2>怎麼運作</h2>
+        <p><strong>灰階影像</strong>是一個二維矩陣，大小是「高 × 寬」。每格通常是 0 到 255 的整數：0 是黑、255 是白，中間是不同深淺的灰。這種 8 位元整數格式稱為 <code>uint8</code>。</p>
+        <p><strong>彩色影像</strong>多了一個維度，叫做通道（<span class="term">channel</span>）。最常見的是 RGB 三通道，等於疊了紅、綠、藍三張灰階圖，所以大小是「高 × 寬 × 3」。</p>
+        <div class="formula">灰階：H × W　　　彩色：H × W × 3　　　數值範圍：0 – 255（uint8）</div>
+        <p>丟進神經網路之前，通常會把數值除以 255 變成 0 到 1 的小數，這一步叫做正規化，能讓訓練更穩定。</p>
+<pre><code><span class="c"># 用 NumPy 做一張 5×5 的灰階小圖：黑底白色十字</span>
+import numpy as np
+
+img = np.zeros((5, 5), dtype=np.uint8)   <span class="c"># 全部是 0（黑）</span>
+img[2, :] = 255                          <span class="c"># 第 3 列塗白</span>
+img[:, 2] = 255                          <span class="c"># 第 3 行塗白</span>
+
+print(img.shape)   <span class="c"># (5, 5)</span>
+print(img[2, 2])   <span class="c"># 255，正中央是白色</span>
+
+<span class="c"># 彩色影像：多一個通道維度</span>
+rgb = np.zeros((5, 5, 3), dtype=np.uint8)
+rgb[..., 0] = img                        <span class="c"># 只放進紅色通道 → 紅色十字</span>
+print(rgb.shape)   <span class="c"># (5, 5, 3)</span>
+
+x = img.astype(np.float32) / 255.0       <span class="c"># 正規化到 0–1</span>
+print(x.max())     <span class="c"># 1.0</span>
+</code></pre>
+      </section>
+
+      <section id="example">
+        <h2>動手看看</h2>
+        <p>下面左邊是上面程式碼做出的十字圖的數值，右邊是同樣的數字畫成顏色。兩邊是同一件事，只是左邊是電腦看到的、右邊是你看到的。</p>
+        <div class="matrix-row">
+          <table class="matrix" aria-label="5×5 灰階數值">
+            <tr><td>0</td><td>0</td><td class="hl">255</td><td>0</td><td>0</td></tr>
+            <tr><td>0</td><td>0</td><td class="hl">255</td><td>0</td><td>0</td></tr>
+            <tr><td class="hl">255</td><td class="hl">255</td><td class="hl">255</td><td class="hl">255</td><td class="hl">255</td></tr>
+            <tr><td>0</td><td>0</td><td class="hl">255</td><td>0</td><td>0</td></tr>
+            <tr><td>0</td><td>0</td><td class="hl">255</td><td>0</td><td>0</td></tr>
+          </table>
+          <span class="op">→</span>
+          <table class="matrix pixel-view" aria-label="畫成顏色後">
+            <tr><td></td><td></td><td class="on"></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td class="on"></td><td></td><td></td></tr>
+            <tr><td class="on"></td><td class="on"></td><td class="on"></td><td class="on"></td><td class="on"></td></tr>
+            <tr><td></td><td></td><td class="on"></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td class="on"></td><td></td><td></td></tr>
+          </table>
+        </div>
+        <p class="figure-caption">左：數值矩陣（高亮為 255）。右：0 畫成黑、255 畫成白。</p>
+        <h3>算算看檔案有多大</h3>
+        <p>一張 1920 × 1080 的彩色照片，有 1920 × 1080 × 3 ≈ 622 萬個數字，每個數字佔 1 位元組，未壓縮就是大約 6 MB。這也是為什麼神經網路通常會先把影像縮小到 224 × 224 之類的尺寸再處理。</p>
+      </section>
+
+      <section id="pitfalls">
+        <h2>常見誤解</h2>
+        <ul class="pitfalls">
+          <li><span class="wrong">像素是一個小正方形。</span><span class="right">像素其實只是一個取樣點的數值，顯示器把它畫成小方塊只是呈現方式。所以放大影像時，電腦要「猜」中間的值（內插），而不是把方塊拉大。</span></li>
+          <li><span class="wrong">所有函式庫讀進來的彩色圖都是 RGB 順序。</span><span class="right">OpenCV 的 <code>cv2.imread</code> 讀進來是 BGR 順序。直接拿去用 Matplotlib 顯示，紅色和藍色會對調，這是新手最常踩的坑。</span></li>
+          <li><span class="wrong">影像的大小寫成「寬 × 高」，所以陣列也是 (W, H)。</span><span class="right">NumPy 陣列是 (列, 行)，也就是 (H, W)。<code>img[y, x]</code> 先放縱座標，跟數學上的 (x, y) 順序相反。</span></li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>相關概念</h2>
+        <div class="related-list" id="related-list"></div>
+      </section>
+
+      <nav id="pager"></nav>
+    </article>
+
+    <nav class="toc" id="toc" aria-label="本頁目錄"></nav>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
