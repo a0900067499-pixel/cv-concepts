@@ -192,7 +192,6 @@ cv-concepts/
 
 | slug | 標題 | category | level |
 |---|---|---|---|
-| `stride-padding` | 步幅與填補 | operations | 1 |
 | `activation-function` | 激活函數 | operations | 1 |
 | `batch-normalization` | 批次正規化 | training | 2 |
 | `overfitting` | 過擬合 | training | 1 |

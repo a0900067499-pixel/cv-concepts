@@ -5,9 +5,24 @@
     "repo": "https://github.com/a0900067499-pixel/cv-concepts"
   },
   "categories": [
-    { "id": "basics", "name": "基礎", "color": "#2f6f8f", "description": "影像在電腦裡長什麼樣子" },
-    { "id": "operations", "name": "運算", "color": "#b5562b", "description": "卷積網路裡一層層發生的事" },
-    { "id": "training", "name": "訓練", "color": "#5b7a2e", "description": "讓模型學得更好的技巧" }
+    {
+      "id": "basics",
+      "name": "基礎",
+      "color": "#2f6f8f",
+      "description": "影像在電腦裡長什麼樣子"
+    },
+    {
+      "id": "operations",
+      "name": "運算",
+      "color": "#b5562b",
+      "description": "卷積網路裡一層層發生的事"
+    },
+    {
+      "id": "training",
+      "name": "訓練",
+      "color": "#5b7a2e",
+      "description": "讓模型學得更好的技巧"
+    }
   ],
   "concepts": [
     {
@@ -18,7 +33,10 @@
       "order": 1,
       "level": 1,
       "summary": "一張影像就是一個數字矩陣，每個數字代表一個點的亮度或顏色。",
-      "related": ["convolution", "data-augmentation"],
+      "related": [
+        "convolution",
+        "data-augmentation"
+      ],
       "updated": "2026-11-15"
     },
     {
@@ -29,7 +47,12 @@
       "order": 2,
       "level": 2,
       "summary": "用一個小視窗在影像上滑動，逐格做加權總和，抽出邊緣、紋理等局部特徵。",
-      "related": ["pixel", "pooling", "receptive-field"],
+      "related": [
+        "pixel",
+        "pooling",
+        "receptive-field",
+        "stride-padding"
+      ],
       "updated": "2026-11-15"
     },
     {
@@ -40,7 +63,10 @@
       "order": 3,
       "level": 1,
       "summary": "把特徵圖切成小區塊，每塊只留一個代表值，讓資料變小、對位移更不敏感。",
-      "related": ["convolution", "receptive-field"],
+      "related": [
+        "convolution",
+        "receptive-field"
+      ],
       "updated": "2026-11-15"
     },
     {
@@ -51,7 +77,11 @@
       "order": 4,
       "level": 2,
       "summary": "某一層的一個輸出，回推到原始影像上「看得到」的範圍有多大。",
-      "related": ["convolution", "pooling"],
+      "related": [
+        "convolution",
+        "pooling",
+        "stride-padding"
+      ],
       "updated": "2026-11-15"
     },
     {
@@ -62,7 +92,25 @@
       "order": 5,
       "level": 1,
       "summary": "對訓練影像做翻轉、裁切、調色等變化，用同一批資料教出更耐變化的模型。",
-      "related": ["pixel", "convolution"],
+      "related": [
+        "pixel",
+        "convolution"
+      ],
+      "updated": "2026-11-15"
+    },
+    {
+      "slug": "stride-padding",
+      "title": "步幅與填補",
+      "en": "Stride & Padding",
+      "category": "operations",
+      "order": 6,
+      "level": 1,
+      "summary": "步幅決定卷積核一次跳幾格，填補決定邊緣要不要補零，兩者一起決定輸出的大小。",
+      "related": [
+        "convolution",
+        "receptive-field",
+        "pooling"
+      ],
       "updated": "2026-11-15"
     }
   ]

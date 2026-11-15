@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>步幅與填補｜像素之後</title>
+  <meta name="description" content="步幅決定卷積核一次跳幾格，填補決定邊緣要不要補零，兩者一起決定輸出的大小。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-page="concept" data-root=".." data-slug="stride-padding">
+  <header id="site-header"></header>
+
+  <main class="concept-layout">
+    <article>
+      <header class="concept-header">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <h1>步幅與填補</h1>
+        <div class="en">Stride &amp; Padding</div>
+        <div class="meta" id="meta"></div>
+      </header>
+
+      <section id="tldr">
+        <h2>一句話定義</h2>
+        <p class="tldr">步幅是卷積核每次往前跳幾格，填補是在影像外圍先補一圈數字，這兩個設定決定卷積後的圖有多大。</p>
+      </section>
+
+      <section id="intuition">
+        <h2>直覺理解</h2>
+        <div class="analogy">用放大鏡檢查一張大海報：一次挪一小步，每個地方都看得很仔細，但很花時間；一次挪一大步，很快就看完，但會漏掉細節。如果海報邊緣太靠近桌緣，放大鏡放不上去，就先在海報四周墊一圈白紙。</div>
+        <p>挪幾步就是步幅（<span class="term">stride</span>），墊白紙就是填補（<span class="term">padding</span>）。步幅越大，輸出越小、計算越快；填補讓核也能放在邊緣，輸出就不會一層一層越縮越小。</p>
+      </section>
+
+      <section id="how">
+        <h2>怎麼運作</h2>
+        <p>設輸入邊長為 n、核邊長為 k、步幅為 s、每邊填補 p 格，輸出的邊長是：</p>
+        <div class="formula">輸出邊長 = ⌊(n + 2p − k) ÷ s⌋ + 1</div>
+        <p>⌊ ⌋ 是無條件捨去。兩個最常見的組合：</p>
+        <ul>
+          <li><strong>3 × 3 核、步幅 1、填補 1</strong>：輸出和輸入一樣大，稱為「same」卷積。用來抽特徵、又不想讓圖變小。</li>
+          <li><strong>3 × 3 核、步幅 2、填補 1</strong>：輸出長寬約減半。例如 224 → 112，可以取代池化來縮小特徵圖。</li>
+        </ul>
+<pre><code><span class="c"># 用 np.pad 補零，再用不同步幅做卷積</span>
+import numpy as np
+
+x = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+xp = np.pad(x, 1)                     <span class="c"># 四周補一圈 0 → 5×5</span>
+k = np.ones((3, 3), dtype=int)        <span class="c"># 全 1 的核：把 3×3 區塊加總</span>
+
+def conv(img, k, s):
+    n = (img.shape[0] - k.shape[0]) // s + 1
+    return np.array([[(img[i*s:i*s+3, j*s:j*s+3] * k).sum()
+                      for j in range(n)] for i in range(n)])
+
+print(conv(xp, k, 1))   <span class="c"># 步幅 1 → 3×3，和原圖一樣大</span>
+<span class="c"># [[12 21 16]</span>
+<span class="c">#  [27 45 33]</span>
+<span class="c">#  [24 39 28]]</span>
+print(conv(xp, k, 2))   <span class="c"># 步幅 2 → 2×2</span>
+<span class="c"># [[12 16]</span>
+<span class="c">#  [24 28]]</span>
+</code></pre>
+      </section>
+
+      <section id="example">
+        <h2>動手看看</h2>
+        <h3>補一圈零</h3>
+        <p>左邊是 3 × 3 的原圖，補一圈 0 之後變成 5 × 5。高亮的是原本的數字。這樣 3 × 3 的核放在左上角時，中心正好對準原圖的 1。</p>
+        <div class="matrix-row">
+          <div>
+            <table class="matrix">
+              <tr><td>1</td><td>2</td><td>3</td></tr>
+              <tr><td>4</td><td>5</td><td>6</td></tr>
+              <tr><td>7</td><td>8</td><td>9</td></tr>
+            </table>
+            <div class="figure-caption">原圖 3 × 3</div>
+          </div>
+          <span class="op">→</span>
+          <div>
+            <table class="matrix">
+              <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>0</td><td class="hl">1</td><td class="hl">2</td><td class="hl">3</td><td>0</td></tr>
+              <tr><td>0</td><td class="hl">4</td><td class="hl">5</td><td class="hl">6</td><td>0</td></tr>
+              <tr><td>0</td><td class="hl">7</td><td class="hl">8</td><td class="hl">9</td><td>0</td></tr>
+              <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+            </table>
+            <div class="figure-caption">填補 1 後 5 × 5</div>
+          </div>
+        </div>
+        <h3>步幅 1 和步幅 2 的差別</h3>
+        <p>用全 1 的 3 × 3 核（把區塊內的數字加總）。左上角的區塊是 0、0、0、0、1、2、0、4、5，總和是 12。步幅 1 時核每次右移一格，得到 3 × 3 的輸出；步幅 2 時每次跳兩格，只會停在第 1、3 個位置，輸出剩 2 × 2，正好是步幅 1 結果的四個角。</p>
+        <div class="matrix-row">
+          <div>
+            <table class="matrix">
+              <tr><td class="hl">12</td><td>21</td><td class="hl">16</td></tr>
+              <tr><td>27</td><td>45</td><td>33</td></tr>
+              <tr><td class="hl">24</td><td>39</td><td class="hl">28</td></tr>
+            </table>
+            <div class="figure-caption">步幅 1：3 × 3</div>
+          </div>
+          <span class="op">→</span>
+          <div>
+            <table class="matrix">
+              <tr><td class="hl">12</td><td class="hl">16</td></tr>
+              <tr><td class="hl">24</td><td class="hl">28</td></tr>
+            </table>
+            <div class="figure-caption">步幅 2：2 × 2</div>
+          </div>
+        </div>
+        <p>代入公式驗算：步幅 1 是 ⌊(3 + 2 − 3) ÷ 1⌋ + 1 = 3；步幅 2 是 ⌊(3 + 2 − 3) ÷ 2⌋ + 1 = 2。</p>
+      </section>
+
+      <section id="pitfalls">
+        <h2>常見誤解</h2>
+        <ul class="pitfalls">
+          <li><span class="wrong">補零會讓模型以為影像邊緣真的是黑色，所以是錯的做法。</span><span class="right">補零確實會讓邊緣的數值偏小，但網路會在訓練中學會處理這個情況。真的在意時，也可以改用複製邊緣像素或鏡像的填補方式。</span></li>
+          <li><span class="wrong">步幅 2 的卷積和「卷積後再做池化」完全一樣。</span><span class="right">兩者都會讓圖變小，但步幅 2 是直接跳過一些位置不算，池化是全部算完再挑代表值。步幅 2 比較省計算，而且縮小的方式也是學出來的。</span></li>
+          <li><span class="wrong">公式算出來不是整數也沒關係，框架會自動處理。</span><span class="right">框架會無條件捨去，最右邊和最下面的一些像素就直接被丟掉了。設計網路時最好讓尺寸剛好整除，避免資訊悄悄流失。</span></li>
+        </ul>
+      </section>
+
+      <section id="related">
+        <h2>相關概念</h2>
+        <div class="related-list" id="related-list"></div>
+      </section>
+
+      <nav id="pager"></nav>
+    </article>
+
+    <nav class="toc" id="toc" aria-label="本頁目錄"></nav>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
