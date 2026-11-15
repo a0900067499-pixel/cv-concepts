@@ -2,7 +2,7 @@
   "site": {
     "title": "像素之後",
     "subtitle": "電腦視覺基礎概念，一頁一個",
-    "repo": "https://github.com/112378074/cv-concepts"
+    "repo": "https://github.com/a0900067499-pixel/cv-concepts"
   },
   "categories": [
     { "id": "basics", "name": "基礎", "color": "#2f6f8f", "description": "影像在電腦裡長什麼樣子" },
