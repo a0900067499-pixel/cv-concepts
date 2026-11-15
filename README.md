@@ -4,7 +4,7 @@
 
 **一句話定義 → 直覺理解 → 怎麼運作 → 動手看看 → 常見誤解**
 
-🔗 網站：https://112378074.github.io/cv-concepts/
+🔗 網站：https://a0900067499-pixel.github.io/cv-concepts/
 
 ## 目前收錄
 
